@@ -5,14 +5,14 @@ template<typename T, typename Alloc = allocator<T>>
 class vector {
 public:
     //构造和析构函数
-    explicit vector(int size = 1)
-        : alloc_()
+    vector(int size = 1, const Alloc& alloc = allocator<T>())
+        : alloc_(alloc)
         , first_(alloc_.allocate(size))
         , last_(first_)
         , end_(first_ + size)
     {}
     vector(cosnt vector<T>& src) 
-        : alloc_()
+        : alloc_(src.alloc_)
         , first_(alloc_.allocate(src.end_ - src.first_))
         , last_(first_ + src.last_ - src.first_)
         , end_(first_ + src.end_ - src.first_) 
@@ -24,7 +24,7 @@ public:
         }
     }
     vector(vector<T>&& src) 
-        : alloc_()
+        : alloc_(std::move(src.alloc_))
         , first_(src.first_)
         , last_(src.last_)
         , end_(src.end_)
