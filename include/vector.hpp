@@ -1,106 +1,126 @@
 #ifndef VECTOR_H
 #define VECTOR_H
-template<typename T>
+#include "allocator.hpp"
+template<typename T, typename Alloc = allocator<T>> 
 class vector {
 public:
     //构造和析构函数
-    vector(int size = 1)
-        : size_(size)
-        , top_(0)
-        , data_(new T [size_]) 
+    explicit vector(int size = 1)
+        : alloc_()
+        , first_(alloc_.allocate(size))
+        , last_(first_)
+        , end_(first_ + size)
     {}
-    vector(const vector<T>& src)
-        : size_(src.size_)
-        , top_(src.top_)
-        , data_(new T [size_]) {
-        //不_要使用memcopy, 需要通过operator=来决定是深拷贝还是浅拷贝
-        for(int i = 0; i < top_; ++i) {
-            data_[i] = src.data_[i];
+    vector(cosnt vector<T>& src) 
+        : alloc_()
+        , first_(alloc_.allocate(src.end_ - src.first_))
+        , last_(first_ + src.last_ - src.first_)
+        , end_(first_ + src.end_ - src.first_) 
+    {
+        int size = src.last_ - src.first_;
+        for(int i = 0; i < size; ++i) {
+            //在指定位置进行构造对象
+            alloc_.construct(first_ + i, src[i]);
         }
     }
-    vector(vector<T>&& src)
-        : size_(src.size_) 
-        , top_(src.top_)
-        , data_(src.data_){
-        src.size_ = 0;
-        src.top_ = 0;
-        src.data_ = nullptr;
+    vector(vector<T>&& src) 
+        : alloc_()
+        , first_(src.first_)
+        , last_(src.last_)
+        , end_(src.end_)
+    {
+        src.first_ = nullptr;
+        src.last_ = nullptr;
+        src.end_ = nullptr;
     }
     ~vector() {
-        size_ = 0;
-        top_ = 0;
-        delete [] data_;
+        free();
     }
-    
+
     //运算符重载
     vector<T>& operator= (const vector<T>& src) {
         if(this == &src) return *this;
-        delete [] data_;
-        size_ = src.size_;
-        top_ = src.top_;
-        data_ = new T[size_];
-        for(int i = 0; i < top_; ++i) {
-            data_[i] = src.data_[i];
+        free();
+        first_ = alloc_.allocate(src.end_ - src.first_);
+        last_ = first_ + src.last_ - src.first_;
+        end_ = first_ + src.end_ - src.first_;
+        int size = src.last_ - src.first_;
+        for(int i = 0; i < size; ++i) {
+            alloc_.construct(first_ + i, src[i]);
         }
-        return *this;
     }
     vector<T>& operator= (vector<T>&& src) {
-        if(this == &src) return *this;
-        delete [] data_;
-        size_ = src.size_;
-        top_ = src.top_;
-        data_ = src.data_;
-        src.size_ = 0;
-        src.top_ = 0;
-        src.data_ = nullptr;
+        first_(src.first_);
+        last_(src.last_);
+        end_(src.end_);
+        src.first_ = nullptr;
+        src.last_ = nullptr;
+        src.end_ = nullptr;
     }
-    T& operator[](int pos) {
-        if(pos >= top || pos < 0) {
-            throw "out of bundary!";
-        }
-        return data[pos];
+    T& operator[] (size_t p) {
+        int size = last_ - first_;
+        if(p < 0 || p >= size) throw "out of boundary!";
+        return first_[p];
     }
-    
+
     //容器操作
-    void push_back(const T& src) {
-        if(full()) expand();
-        data[top_] = src;
+    void push_back(const T& val) {
+        emplace_back(val);
     }
-    template<typename ...Args>
-    void emplace_back(Args&& ...args) {
+    template<typename ...Arg>
+    void emplace_back(Arg&& ...args) {
+        if(full()) expand();
+        alloc_.construct(last_++, std::forward<Arg>(args)...);
     }
     void pop_back() {
-        if(top_ == 0) return;
-        --top_;
+        if(empty()) return;
+        alloc_.destroy(--last_);
     }
-    T& front() {
-        if(top_ == 0) throw "vector is empty!";
-        return data[0];
+
+    T back() const {
+        if(empty()) throw "out of boundary!";
+        return *(last_ - 1);
     }
-    T& back() {
-        if(top_ == 0) throw "vector is empty!";
-        return data[top_ - 1];
+    T front() const {
+        if(empty()) throw "out of boundary!";
+        return *first_;
     }
-    int capacity() { return size_; }
-    int size() { return top_; }
-    bool empty() { return size_ == 0; }
-    bool full() { return size_ == top_; }
+    bool empty() const {
+        return first_ == last_;
+    }
+    bool full() const {
+        return last_ == end_;
+    }
 
 private:
     //扩容操作
     void expand() {
-        size_ = size_ == 0 ? 1 : 2 * size_;
-        T* temp = new T[size_];
-        for(int i = 0; i < top_; ++i) {
-            temp[i] = data[i];
+        int size = end_ - first_;
+        size = size == 0 ? 1 : 2 * size;
+        T* temp = alloc_.allocate(size);
+        int count = last_ - first_;
+        for(int i = 0; i < count; ++i) {
+            alloc_.construct(temp + i, first_[i]);
         }
-        delete [] data_;
-        data_ = temp;
-    }   
+        free();
+        first_ = temp;
+        last_ = first_ + count;
+        end_ = first_ + size;
+    }
+    void free() {
+        //先析构所有有效元素，再释放整个空间
+        for(T* p = first_; p != last_; ++p) {
+            alloc_.destroy(p);
+        }
+        alloc_.deallocate(first_);
+        first_ = nullptr;
+        last_ = nullptr;
+        end_ = nullptr;
+    }
 private:
-    T* data_;
-    int size_;
-    int top_;
+    T* first_;
+    T* last_;
+    T* end_;
+    Alloc alloc_;
 };
-
 #endif
