@@ -11,7 +11,7 @@ public:
         , last_(first_)
         , end_(first_ + size)
     {}
-    vector(cosnt vector<T>& src) 
+    vector(const vector<T>& src) 
         : alloc_(src.alloc_)
         , first_(alloc_.allocate(src.end_ - src.first_))
         , last_(first_ + src.last_ - src.first_)
@@ -23,7 +23,7 @@ public:
             alloc_.construct(first_ + i, src[i]);
         }
     }
-    vector(vector<T>&& src) 
+    vector(vector<T>&& src) noexcept
         : alloc_(std::move(src.alloc_))
         , first_(src.first_)
         , last_(src.last_)
@@ -49,10 +49,11 @@ public:
             alloc_.construct(first_ + i, src[i]);
         }
     }
-    vector<T>& operator= (vector<T>&& src) {
-        first_(src.first_);
-        last_(src.last_);
-        end_(src.end_);
+    vector<T>& operator= (vector<T>&& src) noexcept{
+        alloc_ = std::move(src.alloc_);
+        first_ = src.first_;
+        last_ = src.last_;
+        end_ = src.end_;
         src.first_ = nullptr;
         src.last_ = nullptr;
         src.end_ = nullptr;
@@ -64,8 +65,23 @@ public:
     }
 
     //容器操作
+    void reserve(size_t size) {
+        if(size <= end_ - first_) return;
+        T* temp = alloc_.allocate(size);
+        int size_ = last_ - first_;
+        for(int i = 0; i < size_; ++i) {
+            alloc_.construct(temp + i, first_[i]);
+        }
+        free();
+        first_ = temp;
+        last_ = first_ + size_;
+        end_ = first_ + size;
+    }
     void push_back(const T& val) {
         emplace_back(val);
+    }
+    void push_back(T&& val) {
+        emplace_back(std::move(val));
     }
     template<typename ...Arg>
     void emplace_back(Arg&& ...args) {
