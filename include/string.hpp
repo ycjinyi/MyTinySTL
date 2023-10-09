@@ -9,7 +9,6 @@ friend string operator+ (const string& lhs, const string& rhs);
 public:
     //构造和析构函数
     string(const char* ptr = nullptr) {
-        //std::cout << "string(const char* ptr = nullptr)" << std::endl;
         if(ptr != nullptr) {
             ptr_.reset(new char[strlen(ptr) + 1]);
             strcpy(ptr_.get(), ptr);
@@ -18,12 +17,10 @@ public:
         ptr_.reset(new char[1] {'\0'});
     }
     string(const string& rhs) {
-        //std::cout << "string(const string& rhs)" << std::endl;
         ptr_.reset(new char[strlen(rhs.ptr_.get()) + 1]);
         strcpy(ptr_.get(), rhs.ptr_.get());
     }
     string(string&& rhs) noexcept {
-        //std::cout << "string(string&& rhs) noexcept" << std::endl;
         ptr_ = std::move(rhs.ptr_);
     }
     ~string() = default;

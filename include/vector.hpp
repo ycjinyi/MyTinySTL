@@ -63,6 +63,11 @@ public:
         if(p < 0 || p >= size) throw "out of boundary!";
         return first_[p];
     }
+    const T& operator[] (size_t p) const{
+        int size = last_ - first_;
+        if(p < 0 || p >= size) throw "out of boundary!";
+        return first_[p];
+    }
 
     //容器操作
     void reserve(size_t size) {
