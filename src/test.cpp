@@ -4,10 +4,10 @@
 #include "shared_ptr.hpp"
 class Test {
 public:
-    Test() { std::cout << "Test()" << std::endl;}
+    Test(): number(0) { std::cout << "Test()" << std::endl;}
     Test(int num): number(num) { std::cout << "Test(int)" << std::endl;}
-    Test(const Test&) { std::cout << "Test(const Test&)" << std::endl;}
-    Test(Test&&) { std::cout << "Test(Test&&)" << std::endl;} 
+    Test(const Test& t): number(t.number) { std::cout << "Test(const Test&)" << std::endl;}
+    Test(Test&& t): number(t.number) { std::cout << "Test(Test&&)" << std::endl;} 
     ~Test() { std::cout << "~Test()" << std::endl; }
     int number;
 };
@@ -40,7 +40,7 @@ typename remove_reference<T>::type&& move(T&& e) {
 }
 
 int main() {
-    /*
+    
     vector<Test> vec;
     vec.reserve(20);
     Test a(10);
@@ -54,7 +54,10 @@ int main() {
     vec.push_back(Test());
     vec.emplace_back(Test());
     std::cout << vec[2] << std::endl;
-    */
+    vector<Test>::iterator it = vec.begin();
+    for(; it != vec.end(); ++it) {
+        std::cout << (*it).number << std::endl;
+    }
 
     /*
     string s1 = "aaa";
@@ -66,6 +69,7 @@ int main() {
     bool eq = s3 == s2;
     std::cout << eq << std::endl;
     */
+    /*
     {
         shared_ptr<Test> sp(new Test(20));
         std::cout << sp->number << std::endl;
@@ -75,5 +79,6 @@ int main() {
         std::cout << sp.use_count() << std::endl;
     }
     std::cout << "------" << std::endl;
+    */
     return 0;
 }

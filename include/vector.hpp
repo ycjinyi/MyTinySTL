@@ -113,6 +113,43 @@ public:
         return last_ == end_;
     }
 
+public:
+    //迭代器实现
+    class iterator {
+    public:
+        iterator(T* ptr): ptr_(ptr) {}
+        bool operator== (const iterator& rhs) const {
+            return ptr_ == rhs.ptr_;
+        }
+        bool operator!= (const iterator& rhs) const {
+            return ptr_ != rhs.ptr_;
+        }
+        iterator& operator++ () {
+            ++ptr_;
+            return *this;
+        }
+        iterator operator++(int) {
+            return iterator(ptr_++);
+        } 
+        iterator& operator-- () {
+            --ptr_;
+            return *this;
+        }
+        iterator operator--(int) {
+            return iterator(ptr_--);
+        } 
+        T& operator* () {
+            return *ptr_;
+        }
+    private:
+        T* ptr_;
+    };
+    iterator begin() {
+        return iterator(first_);
+    }
+    iterator end() {
+        return iterator(last_);
+    }
 private:
     //扩容操作
     void expand() {
