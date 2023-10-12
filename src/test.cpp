@@ -3,6 +3,7 @@
 #include "string.hpp"
 #include "shared_ptr.hpp"
 #include "lrucache.hpp"
+#include "designpattern.hpp"
 class Test {
 public:
     Test(): number(0) { std::cout << "Test()" << std::endl;}
@@ -89,6 +90,11 @@ int main() {
     cache.put(2, 2);
     std::cout << cache.get(2) << std::endl;
     */
+
+    observer1 ob1;
+    object obj;
+    obj.subscribe(2, &ob1);
+    obj.dispatch(2);
 
     return 0;
 }
