@@ -8,6 +8,7 @@ friend std::ostream& operator<< (std::ostream& os, const string& t);
 friend string operator+ (const string& lhs, const string& rhs);
 public:
     //构造和析构函数
+    //注意分配的空间大小是strlen的长度+1
     string(const char* ptr = nullptr) {
         if(ptr != nullptr) {
             ptr_.reset(new char[strlen(ptr) + 1]);
@@ -27,14 +28,12 @@ public:
 
     //操作符
     string& operator= (const string& rhs) {
-        //std::cout << "string& operator= (const string& rhs)" << std::endl;
         if(this == &rhs) return *this;
         ptr_.reset(new char[strlen(rhs.ptr_.get()) + 1]);
         strcpy(ptr_.get(), rhs.ptr_.get());
         return *this;
     }
     string& operator= (string&& rhs) noexcept {
-        //std::cout << "string& operator= (string&& rhs)" << std::endl;
         ptr_ = std::move(rhs.ptr_);
         return *this;
     }

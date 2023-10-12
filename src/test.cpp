@@ -2,6 +2,7 @@
 #include "vector.hpp"
 #include "string.hpp"
 #include "shared_ptr.hpp"
+#include "lrucache.hpp"
 class Test {
 public:
     Test(): number(0) { std::cout << "Test()" << std::endl;}
@@ -40,7 +41,7 @@ typename remove_reference<T>::type&& move(T&& e) {
 }
 
 int main() {
-    
+    /*
     vector<Test> vec;
     vec.reserve(20);
     Test a(10);
@@ -58,6 +59,7 @@ int main() {
     for(; it != vec.end(); ++it) {
         std::cout << (*it).number << std::endl;
     }
+    */
 
     /*
     string s1 = "aaa";
@@ -80,5 +82,13 @@ int main() {
     }
     std::cout << "------" << std::endl;
     */
+
+    /*
+    LRUCache<int, int> cache(2);
+    cache.put(1, 1);
+    cache.put(2, 2);
+    std::cout << cache.get(2) << std::endl;
+    */
+
     return 0;
 }
