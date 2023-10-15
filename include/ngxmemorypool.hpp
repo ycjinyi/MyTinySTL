@@ -52,8 +52,8 @@ const size_t NGX_MIN_POOL_SIZE =
 
 class ngx_mem_pool {
 public:
-    // 创建指定size大小的内存池，但是小块内存池不超过1个页面大小4KB
-    void ngx_create_pool(size_t size);
+    ngx_mem_pool(size_t size);
+    ~ngx_mem_pool();
     // 考虑内存对齐，申请size大小的内存
     void* ngx_palloc(size_t size);
     // 不考内存对齐
@@ -64,11 +64,13 @@ public:
     void ngx_pfree(void* p);
     // 重置内存池的内存资源
     void ngx_reset_pool();
+    // 添加待清理的数据
+    ngx_pool_cleanup_s* ngx_pool_cleanup_add();
+private:
+    // 创建指定size大小的内存池，但是小块内存池不超过1个页面大小4KB
+    void ngx_create_pool(size_t size);
     // 内存池的销毁函数
     void ngx_destroy_pool();
-    // 添加待清理的数据
-    ngx_pool_cleanup_s* ngx_pool_cleanup_add(size_t size);
-private:
     // 分配小块内存
     void* ngx_palloc_small(size_t size, uint align);
     // 分配大块内存

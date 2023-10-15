@@ -1,6 +1,15 @@
 #include "ngxmemorypool.hpp"
 #include <cstdlib>
 #include <algorithm>
+#include <cstring>
+
+ngx_mem_pool::ngx_mem_pool(size_t size) {
+    ngx_create_pool(size);
+}
+
+ngx_mem_pool::~ngx_mem_pool() {
+    ngx_destroy_pool();
+}
 
 // 创建指定size大小的内存池，但是小块内存池不超过1个页面大小4KB
 void ngx_mem_pool::ngx_create_pool(size_t size) {
@@ -40,7 +49,10 @@ void* ngx_mem_pool::ngx_pnalloc(size_t size) {
 
 // 调用ngx_palloc实现内存分配，初始化为0
 void* ngx_mem_pool::ngx_pcalloc(size_t size) {
-
+    void* ptr = ngx_palloc(size);
+    if(ptr == nullptr) return nullptr;
+    memset(ptr, 0, size);
+    return ptr;
 }
 
 // 释放大块内存
@@ -58,17 +70,63 @@ void ngx_mem_pool::ngx_pfree(void* p) {
 
 // 重置内存池的内存资源
 void ngx_mem_pool::ngx_reset_pool() {
-
+    // 首先释放外部资源
+    ngx_pool_cleanup_s* cptr = pool_->cleanup;
+    while(cptr != nullptr) {
+        if(cptr->handler != nullptr) cptr->handler(cptr->data);
+        cptr = cptr->next;
+    }
+    // 然后释放大块内存
+    ngx_pool_large_s* lptr = pool_->large;
+    while(lptr != nullptr) {
+        if(lptr->alloc != nullptr) {
+            free(lptr->alloc);
+            lptr->alloc = nullptr;
+        }
+        lptr = lptr->next;
+    }
+    // 清空小块内存池
+    ngx_pool_data_t* ptr = &pool_->d;
+    // 注意第一块内存池的头部更长
+    if(ptr != nullptr) {
+        ptr->last = (uchar*)&pool_->d + sizeof(ngx_pool_s);
+        ptr->failed = 0;
+        ptr = ptr->next;
+    }
+    while(ptr != nullptr) {
+        ptr->last = (uchar*)ptr + sizeof(ngx_pool_data_t);
+        ptr->failed = 0;
+        ptr = ptr->next;
+    }
+    // 重置头部信息
+    pool_->current = &pool_->d;
+    pool_->large = nullptr;
+    pool_->cleanup = nullptr;
 }
 
 // 内存池的销毁函数
 void ngx_mem_pool::ngx_destroy_pool() {
-
+    // 先释放除小内存池的所有资源
+    ngx_reset_pool();
+    // 释放小内存池的资源
+    ngx_pool_data_t* ptr = pool_->current;
+    while(ptr != nullptr) {
+        ngx_pool_data_t* temp = ptr->next;
+        free(ptr);
+        ptr = temp;
+    }
+    pool_ = nullptr;
 }
 
 // 添加待清理的数据
-ngx_pool_cleanup_s* ngx_mem_pool::ngx_pool_cleanup_add(size_t size) {
-
+ngx_pool_cleanup_s* ngx_mem_pool::ngx_pool_cleanup_add() {
+    ngx_pool_cleanup_s* ptr = (ngx_pool_cleanup_s*)ngx_palloc(sizeof(ngx_pool_cleanup_s));
+    if(ptr == nullptr) return nullptr;
+    ptr->handler = nullptr;
+    ptr->data = nullptr;
+    ptr->next = pool_->cleanup;
+    pool_->cleanup = ptr;
+    return ptr;
 }
 
 // 分配小块内存
@@ -150,14 +208,8 @@ void* ngx_mem_pool::ngx_palloc_large(size_t size) {
         return nullptr;
     }
     ptr->alloc = p;
-    ptr->next = nullptr;
-    // 使用头插法加入到链表当中
-    if(pool_->large == nullptr) {
-        pool_->large = ptr;
-    } else {
-        ptr->next = pool_->large->next;
-        pool_->large->next = ptr;
-    }
+    ptr->next = pool_->large;
+    pool_->large = ptr;
     return p;
 }
 
