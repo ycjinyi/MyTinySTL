@@ -73,7 +73,7 @@ void ngx_mem_pool::ngx_reset_pool() {
     // 首先释放外部资源
     ngx_pool_cleanup_s* cptr = pool_->cleanup;
     while(cptr != nullptr) {
-        if(cptr->handler != nullptr) cptr->handler(cptr->data);
+        if(cptr->handler != nullptr) cptr->handler();
         cptr = cptr->next;
     }
     // 然后释放大块内存
@@ -123,7 +123,6 @@ ngx_pool_cleanup_s* ngx_mem_pool::ngx_pool_cleanup_add() {
     ngx_pool_cleanup_s* ptr = (ngx_pool_cleanup_s*)ngx_palloc(sizeof(ngx_pool_cleanup_s));
     if(ptr == nullptr) return nullptr;
     ptr->handler = nullptr;
-    ptr->data = nullptr;
     ptr->next = pool_->cleanup;
     pool_->cleanup = ptr;
     return ptr;

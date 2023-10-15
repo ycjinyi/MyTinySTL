@@ -1,5 +1,6 @@
 #ifndef NGX_MEMORY_POOL_H
 #define NGX_MEMORY_POOL_H
+#include <functional>
 
 typedef unsigned char uchar;
 typedef unsigned int uint;
@@ -7,11 +8,10 @@ typedef unsigned long size_t;
 typedef unsigned long upointer_t;
 
 // 清理函数
-typedef void(*ngx_pool_cleanup_pt)(void*);
-// 内存池的数据清理信息，链表组织
+using ngx_pool_cleanup_pt = std::function<void()>;
+// 内存池的数据清理信息，链表组织，数据可以通过绑定器传入
 struct ngx_pool_cleanup_s {
     ngx_pool_cleanup_pt handler;
-    void *data;
     ngx_pool_cleanup_s *next;
 };
 

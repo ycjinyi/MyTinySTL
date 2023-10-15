@@ -1,9 +1,12 @@
 #include <iostream>
+#include <functional>
 #include "vector.hpp"
 #include "string.hpp"
 #include "shared_ptr.hpp"
 #include "lrucache.hpp"
 #include "designpattern.hpp"
+#include "ngxmemorypool.hpp"
+
 class Test {
 public:
     Test(): number(0) { std::cout << "Test()" << std::endl;}
@@ -12,6 +15,7 @@ public:
     Test(Test&& t): number(t.number) { std::cout << "Test(Test&&)" << std::endl;} 
     ~Test() { std::cout << "~Test()" << std::endl; }
     int number;
+    char* pointer;
 };
 std::ostream& operator<< (std::ostream& os, const Test& t) {
     os << "cout << Test";
@@ -39,6 +43,13 @@ template<typename T>
 typename remove_reference<T>::type&& move(T&& e) {
     return static_cast<typename remove_reference<T>::type&&> (e);
 }
+}
+
+typedef std::function<void()> func;
+
+void clean(Test* t) {
+    std::cout << "release t" << std::endl;
+    free(t->pointer);
 }
 
 int main() {
@@ -91,10 +102,21 @@ int main() {
     std::cout << cache.get(2) << std::endl;
     */
 
+    /*
     observer1 ob1;
     object obj;
     obj.subscribe(2, &ob1);
     obj.dispatch(2);
+    */
 
+    /*
+    ngx_mem_pool pool(512);
+    Test* p = (Test*)pool.ngx_palloc(sizeof(Test));
+    p->pointer = (char*)malloc(sizeof(char));
+    func f = std::bind(&clean, p);
+    ngx_pool_cleanup_s* ptr = pool.ngx_pool_cleanup_add();
+    ptr->handler = f;
+    */
+   
     return 0;
 }
