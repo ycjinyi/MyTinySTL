@@ -15,7 +15,7 @@ struct ngx_pool_cleanup_s {
     ngx_pool_cleanup_s *next;
 };
 
-// 内存池分配的大块内存的头部信息，双链表组织
+// 内存池分配的大块内存的头部信息，链表组织
 struct ngx_pool_large_s {
     ngx_pool_large_s *next;
     void *alloc;
