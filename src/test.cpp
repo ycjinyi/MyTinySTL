@@ -6,6 +6,7 @@
 #include "lrucache.hpp"
 #include "designpattern.hpp"
 #include "ngxmemorypool.hpp"
+#include "forwardlist.hpp"
 
 class Test {
 public:
@@ -117,6 +118,12 @@ int main() {
     ngx_pool_cleanup_s* ptr = pool.ngx_pool_cleanup_add();
     ptr->handler = f;
     */
-   
+
+    forward_list<Test> list;
+    list.emplace_back(10);
+    list.emplace_back(20);
+    list.pop_front();
+    list.emplace_back(30);
+
     return 0;
 }
