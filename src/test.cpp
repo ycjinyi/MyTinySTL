@@ -122,12 +122,15 @@ int main() {
 
     auto start = std::chrono::high_resolution_clock::now();
     forward_list<int> list;
-    for(int i = 0; i < 20000; ++i) {
+    for(int i = 0; i < 30000; ++i) {
         list.emplace_back(i);
+    }
+    while(!list.empty()) {
+        list.pop_front();
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
     std::cout << diff.count() << std::endl;
-    
+
     return 0;
 }

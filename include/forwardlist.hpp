@@ -56,7 +56,7 @@ private:
         void* operator new(size_t size) {
             if(_pool == nullptr) {
                 size *= _cap;
-                std::cout << _cap << std::endl;
+                //std::cout << _cap << std::endl;
                 _pool = (node*)malloc(size);
                 if(_pool == nullptr) throw std::bad_alloc();
                 _arrays[_idx++] = _pool;
