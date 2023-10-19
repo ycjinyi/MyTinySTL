@@ -1,5 +1,6 @@
 #ifndef FORWARD_LIST_H
 #define FORWARD_LIST_H
+#include <iostream>
 // 对象池实现
 template<typename T> 
 class forward_list {
@@ -55,12 +56,13 @@ private:
         void* operator new(size_t size) {
             if(_pool == nullptr) {
                 size *= _cap;
+                std::cout << _cap << std::endl;
                 _pool = (node*)malloc(size);
-                if(_pool = nullptr) throw std::bad_alloc();
+                if(_pool == nullptr) throw std::bad_alloc();
                 _arrays[_idx++] = _pool;
                 // 将静态链表串联
                 node* ptr = _pool;
-                for(; ptr != _pool + size - 1; ++ptr) {
+                for(; ptr != _pool + _cap - 1; ++ptr) {
                     ptr->_next = ptr + 1;
                 }
                 ptr->_next = nullptr;
@@ -86,7 +88,7 @@ private:
         // 使用静态链表的方式分配空间
         static node* _pool;
         static unsigned int _cap;
-        static node* _arrays[20];
+        static node* _arrays[15];
         static unsigned int _idx;
     };
     node* _head;
@@ -97,11 +99,10 @@ typename forward_list<T>::node* forward_list<T>::node::_pool = nullptr;
 template<typename T>
 unsigned int forward_list<T>::node::_cap = 1;
 template<typename T>
-typename forward_list<T>::node* forward_list<T>::node::_arrays[20] = 
-{nullptr, nullptr, nullptr, nullptr, nullptr,
-nullptr, nullptr, nullptr, nullptr, nullptr,
-nullptr, nullptr, nullptr, nullptr, nullptr,
-nullptr, nullptr, nullptr, nullptr, nullptr};
+typename forward_list<T>::node* forward_list<T>::node::_arrays[15] = 
+    {nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr};
 template<typename T>
 unsigned int forward_list<T>::node::_idx = 0;
 #endif

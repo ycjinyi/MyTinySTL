@@ -1,5 +1,6 @@
 #include <iostream>
 #include <functional>
+#include <chrono>
 #include "vector.hpp"
 #include "string.hpp"
 #include "shared_ptr.hpp"
@@ -119,11 +120,14 @@ int main() {
     ptr->handler = f;
     */
 
-    forward_list<Test> list;
-    list.emplace_back(10);
-    list.emplace_back(20);
-    list.pop_front();
-    list.emplace_back(30);
-
+    auto start = std::chrono::high_resolution_clock::now();
+    forward_list<int> list;
+    for(int i = 0; i < 20000; ++i) {
+        list.emplace_back(i);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    std::cout << diff.count() << std::endl;
+    
     return 0;
 }

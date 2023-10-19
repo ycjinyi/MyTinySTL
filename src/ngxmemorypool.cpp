@@ -157,7 +157,7 @@ void* ngx_mem_pool::ngx_palloc_block(size_t size) {
     // 内存分配
     size_t s = pool_->max + sizeof(ngx_pool_data_t);
     void* p = malloc(s);
-    if(p = nullptr) return nullptr;
+    if(p == nullptr) return nullptr;
     // 指定参数
     ngx_pool_data_t* head = (ngx_pool_data_t*) p;
     uchar* m = (uchar*) p + sizeof(ngx_pool_data_t);
